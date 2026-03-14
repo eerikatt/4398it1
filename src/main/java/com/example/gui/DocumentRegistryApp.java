@@ -13,11 +13,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -43,6 +46,14 @@ public class DocumentRegistryApp extends Application {
 
     // Search box
     private TextField searchField;
+
+    // Side panel info
+    private Label idValue;
+    private Label nameValue;
+    private Label typeValue;
+    private Label sizeValue;
+    private Label pathValue;
+    private Label createdValue;
 
     // Reusable style strings
     private final String rootStyle =
@@ -124,6 +135,7 @@ public class DocumentRegistryApp extends Application {
         // Create table
         table = new TableView<>();
         setupTable();
+        setupSelectionListener();
 
         // Get list of all documents for masterData, and filteredData will contain
         // all documents since no filter has been applied yet
@@ -139,8 +151,13 @@ public class DocumentRegistryApp extends Application {
         tablePane.setPadding(new Insets(0));
         tablePane.setStyle(panelStyle);
 
+        VBox detailsPane = buildDetailsPanel();
+        detailsPane.setStyle(panelStyle);
+
         root.setCenter(tablePane);
+        root.setRight(detailsPane);
         BorderPane.setMargin(tablePane, new Insets(16, 16, 0, 0));
+        BorderPane.setMargin(detailsPane, new Insets(16, 0, 0, 0));
 
         // Window size and title
         Scene scene = new Scene(root, 1200, 700);
@@ -211,7 +228,83 @@ public class DocumentRegistryApp extends Application {
         return new HBox(barCard);
     }
 
+    // Side panel
+    private VBox buildDetailsPanel() {
+        // Title and labels for document details
+        Label title = new Label("Document Details");
+        title.setStyle(sectionTitleStyle);
 
+        // '-' when no doc is selected
+        idValue = new Label("-");
+        nameValue = new Label("-");
+        typeValue = new Label("-");
+        sizeValue = new Label("-");
+        pathValue = new Label("-");
+        pathValue.setWrapText(true);
+        createdValue = new Label("-");
+
+        styleDetailValue(idValue);
+        styleDetailValue(nameValue);
+        styleDetailValue(typeValue);
+        styleDetailValue(sizeValue);
+        styleDetailValue(pathValue);
+        styleDetailValue(createdValue);
+
+        // Layout (grid style)
+        GridPane grid = new GridPane();
+        grid.setHgap(14);
+        grid.setVgap(14);
+
+        Label idLabel = new Label("ID");
+        Label nameLabel = new Label("File Name");
+        Label typeLabel = new Label("Type");
+        Label sizeLabel = new Label("Size");
+        Label pathLabel = new Label("Path");
+        Label createdLabel = new Label("Created");
+
+        styleDetailLabel(idLabel);
+        styleDetailLabel(nameLabel);
+        styleDetailLabel(typeLabel);
+        styleDetailLabel(sizeLabel);
+        styleDetailLabel(pathLabel);
+        styleDetailLabel(createdLabel);
+
+        // Labels
+        grid.add(idLabel, 0, 0);
+        grid.add(idValue, 1, 0);
+
+        grid.add(nameLabel, 0, 1);
+        grid.add(nameValue, 1, 1);
+
+        grid.add(typeLabel, 0, 2);
+        grid.add(typeValue, 1, 2);
+
+        grid.add(sizeLabel, 0, 3);
+        grid.add(sizeValue, 1, 3);
+
+        grid.add(pathLabel, 0, 4);
+        grid.add(pathValue, 1, 4);
+
+        grid.add(createdLabel, 0, 5);
+        grid.add(createdValue, 1, 5);
+
+        // Column size (second is adjustable given values)
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setMinWidth(85);
+
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setHgrow(Priority.ALWAYS);
+
+        grid.getColumnConstraints().addAll(col1, col2);
+
+        // Layout
+        VBox panel = new VBox(16, title, new Separator(), grid);
+        panel.setPadding(new Insets(18));
+        panel.setPrefWidth(340);
+        panel.setMinWidth(300);
+
+        return panel;
+    }
 
     // Main table
     private void setupTable() {
@@ -254,6 +347,12 @@ public class DocumentRegistryApp extends Application {
         table.setFixedCellSize(36);
     }
 
+    // When selected row changes, update side panel
+    private void setupSelectionListener() {
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldDoc, newDoc) -> {
+            showDocumentDetails(newDoc);
+        });
+    }
 
     // Filter documents based on search text
     private void applyFilter(String filterText) {
@@ -275,6 +374,43 @@ public class DocumentRegistryApp extends Application {
                     || fileType.contains(filter)
                     || filePath.contains(filter);
         });
+    }
+
+    // Get details of document
+    private void showDocumentDetails(Document document) {
+        if (document == null) {
+            clearDetails();
+            return;
+        }
+
+        idValue.setText(String.valueOf(document.getId()));
+        nameValue.setText(document.getFileName());
+        typeValue.setText(document.getFileType());
+        sizeValue.setText(String.valueOf(document.getFileSize()));
+        pathValue.setText(document.getFilePath());
+        createdValue.setText(
+                document.getCreatedAt() == null ? "-" : document.getCreatedAt().toString()
+        );
+    }
+
+    // Nulls ('-') when no doc is selected
+    private void clearDetails() {
+        idValue.setText("-");
+        nameValue.setText("-");
+        typeValue.setText("-");
+        sizeValue.setText("-");
+        pathValue.setText("-");
+        createdValue.setText("-");
+    }
+
+    // Style helper for detail labels
+    private void styleDetailLabel(Label label) {
+        label.setStyle(labelTitleStyle);
+    }
+
+    // Style helper for detail values
+    private void styleDetailValue(Label label) {
+        label.setStyle(labelValueStyle);
     }
 
     // Launch
