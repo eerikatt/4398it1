@@ -5,15 +5,21 @@ import com.example.guiapimodule.GuiApiModule;
 import com.example.model.Document;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -28,6 +34,15 @@ public class DocumentRegistryApp extends Application {
 
     // Displayed table
     private TableView<Document> table;
+
+    // List of all documents
+    private ObservableList<Document> masterData;
+
+    // Used to narrow search
+    private FilteredList<Document> filteredData;
+
+    // Search box
+    private TextField searchField;
 
     // Reusable style strings
     private final String rootStyle =
@@ -110,8 +125,14 @@ public class DocumentRegistryApp extends Application {
         table = new TableView<>();
         setupTable();
 
+        // Get list of all documents for masterData, and filteredData will contain
+        // all documents since no filter has been applied yet
+        masterData = FXCollections.observableArrayList();
+        filteredData = new FilteredList<>(masterData, document -> true);
+        table.setItems(filteredData);
+
         // Set top, center, and right sections
-        VBox topSection = new VBox(12, buildHeader());
+        VBox topSection = new VBox(12, buildHeader(), buildSearchBar());
         root.setTop(topSection);
 
         StackPane tablePane = new StackPane(table);
@@ -146,6 +167,51 @@ public class DocumentRegistryApp extends Application {
         return header;
 
     }
+
+    // Search and sort bar
+    private HBox buildSearchBar() {
+        // Search label and text box
+        Label searchLabel = new Label("Search");
+        searchLabel.setStyle(labelTitleStyle);
+
+        searchField = new TextField();
+        searchField.setPromptText("Filter by file name, type, or path.");
+        searchField.setStyle(fieldStyle);
+        searchField.textProperty().addListener((obs, oldValue, newValue) -> {
+            applyFilter(newValue);
+        });
+            
+        // Clear button
+        Button clearBtn = new Button("Clear");
+        clearBtn.setStyle(secondaryButtonStyle);
+        clearBtn.setOnAction(e -> searchField.clear());
+
+        // Empty labels for allignment
+        Label clearSpacer = new Label(" ");
+        clearSpacer.setStyle(labelTitleStyle);
+
+        Label sortSpacer = new Label(" ");
+        sortSpacer.setStyle(labelTitleStyle);
+
+        // Seperate vbox for each to maintain level allignment
+        VBox searchBox = new VBox(6, searchLabel, searchField);
+        VBox clearBox = new VBox(6, clearSpacer, clearBtn);
+
+        // Search field adjusts to size of input
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
+
+        // Main row
+        HBox searchBar = new HBox(12, searchBox, clearBox);
+        searchBar.setAlignment(Pos.TOP_LEFT);
+
+        StackPane barCard = new StackPane(searchBar);
+        barCard.setPadding(new Insets(14));
+        barCard.setStyle(panelStyle);
+
+        return new HBox(barCard);
+    }
+
+
 
     // Main table
     private void setupTable() {
@@ -186,6 +252,29 @@ public class DocumentRegistryApp extends Application {
                 "-fx-font-size: 13px;"
         );
         table.setFixedCellSize(36);
+    }
+
+
+    // Filter documents based on search text
+    private void applyFilter(String filterText) {
+        // If null set as "", else make it lowercase
+        String filter = filterText == null ? "" : filterText.trim().toLowerCase();
+
+        filteredData.setPredicate(document -> {
+            if (filter.isEmpty()) {
+                return true;
+            }
+
+            // If null then set as "", else make it lowercase
+            String fileName = document.getFileName() == null ? "" : document.getFileName().toLowerCase();
+            String fileType = document.getFileType() == null ? "" : document.getFileType().toLowerCase();
+            String filePath = document.getFilePath() == null ? "" : document.getFilePath().toLowerCase();
+
+            // Check if fields contain text
+            return fileName.contains(filter)
+                    || fileType.contains(filter)
+                    || filePath.contains(filter);
+        });
     }
 
     // Launch
