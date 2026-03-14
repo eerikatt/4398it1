@@ -469,6 +469,35 @@ public class DocumentRegistryApp extends Application {
         }
     }
 
+    // Download selected file to user-chosen location
+    private void downloadSelected() {
+        // Get selected doc (object from row)
+        Document selected = table.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            return;
+        }
+
+        try {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Download File");
+            chooser.setInitialFileName(selected.getFileName());
+
+            File saveFile = chooser.showSaveDialog(primaryStage);
+
+            if (saveFile == null) {
+                return;
+            }
+
+            Path sourcePath = Path.of(selected.getFilePath());
+            Path destinationPath = saveFile.toPath();
+
+            Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            showError("Download Error", "Failed to download document.", e);
+        }
+    }
+
     // Create a new file path if the file name already exists in storage
     private Path getAvailableFilePath(Path folder, String fileName) {
         Path path = folder.resolve(fileName);
