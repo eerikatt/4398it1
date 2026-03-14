@@ -402,24 +402,25 @@ public class DocumentRegistryApp extends Application {
 
     // Filter documents based on search text
     private void applyFilter(String filterText) {
-        // If null set as "", else make it lowercase
         String filter = filterText == null ? "" : filterText.trim().toLowerCase();
+        filteredData.setPredicate(document -> documentMatchesFilter(document, filter));
+    }
 
-        filteredData.setPredicate(document -> {
-            if (filter.isEmpty()) {
-                return true;
-            }
+    // Pure matching logic — static so it can be unit tested without JavaFX
+    public static boolean documentMatchesFilter(Document document, String filter) {
+        if (filter == null || filter.isEmpty()) {
+            return true;
+        }
 
-            // If null then set as "", else make it lowercase
-            String fileName = document.getFileName() == null ? "" : document.getFileName().toLowerCase();
-            String fileType = document.getFileType() == null ? "" : document.getFileType().toLowerCase();
-            String filePath = document.getFilePath() == null ? "" : document.getFilePath().toLowerCase();
+        // If null then set as "", else make it lowercase
+        String fileName = document.getFileName() == null ? "" : document.getFileName().toLowerCase();
+        String fileType = document.getFileType() == null ? "" : document.getFileType().toLowerCase();
+        String filePath = document.getFilePath() == null ? "" : document.getFilePath().toLowerCase();
 
-            // Check if fields contain text
-            return fileName.contains(filter)
-                    || fileType.contains(filter)
-                    || filePath.contains(filter);
-        });
+        // Check if fields contain text
+        return fileName.contains(filter)
+                || fileType.contains(filter)
+                || filePath.contains(filter);
     }
 
     // Update button to sync storage and database, then reload table
