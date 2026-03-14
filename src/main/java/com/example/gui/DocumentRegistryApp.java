@@ -469,6 +469,40 @@ public class DocumentRegistryApp extends Application {
         }
     }
 
+    // Create a new file path if the file name already exists in storage
+    private Path getAvailableFilePath(Path folder, String fileName) {
+        Path path = folder.resolve(fileName);
+
+        if (!Files.exists(path)) {
+            return path;
+        }
+
+        int dotIndex = fileName.lastIndexOf('.');
+        String namePart;
+        String extensionPart;
+
+        if (dotIndex == -1) {
+            namePart = fileName;
+            extensionPart = "";
+        } else {
+            namePart = fileName.substring(0, dotIndex);
+            extensionPart = fileName.substring(dotIndex);
+        }
+
+        int count = 1;
+
+        while (true) {
+            String newFileName = namePart + "_" + count + extensionPart;
+            Path newPath = folder.resolve(newFileName);
+
+            if (!Files.exists(newPath)) {
+                return newPath;
+            }
+
+            count++;
+        }
+    }
+
         private void sortDocuments(String sortOption) {
         // If nothing is selected, stop
         if (sortOption == null) {
