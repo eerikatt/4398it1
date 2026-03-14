@@ -1,5 +1,10 @@
 package com.example.gui;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 import com.example.guiapimodule.DefaultGuiApiModule;
 import com.example.guiapimodule.GuiApiModule;
 import com.example.model.Document;
@@ -13,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
@@ -27,6 +33,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class DocumentRegistryApp extends Application {
@@ -430,6 +437,35 @@ public class DocumentRegistryApp extends Application {
             refreshTable();
         } catch (Exception e) {
             showError("Update Error", "Failed to update documents.", e);
+        }
+    }
+
+    // Upload file into storage folder, then sync database
+    private void uploadFile() {
+        try {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Upload File");
+
+            File selectedFile = chooser.showOpenDialog(primaryStage);
+
+            // User cancelled file chooser
+            if (selectedFile == null) {
+                return;
+            }
+
+            Path sourcePath = selectedFile.toPath();
+            Path storageFolder = apiModule.getConfig().getStorageFolder();
+
+            Files.createDirectories(storageFolder);
+
+            Path destinationPath = getAvailableFilePath(storageFolder, selectedFile.getName());
+
+            Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
+
+            apiModule.syncStorageAndDatabase();
+            refreshTable();
+        } catch (Exception e) {
+            showError("Upload Error", "Failed to upload file.", e);
         }
     }
 
