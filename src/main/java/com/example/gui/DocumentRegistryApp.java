@@ -433,6 +433,73 @@ public class DocumentRegistryApp extends Application {
         }
     }
 
+        private void sortDocuments(String sortOption) {
+        // If nothing is selected, stop
+        if (sortOption == null) {
+            return;
+        }
+
+        // Sort by file name
+        if (sortOption.equals("Name")) {
+            FXCollections.sort(masterData, (a, b) ->
+                    a.getFileName().compareToIgnoreCase(b.getFileName()));
+        }
+        // Sort by file type
+        else if (sortOption.equals("Type")) {
+            FXCollections.sort(masterData, (a, b) ->
+                    a.getFileType().compareToIgnoreCase(b.getFileType()));
+        }
+        // Sort by file size
+        else if (sortOption.equals("Size")) {
+            FXCollections.sort(masterData, (a, b) ->
+                    Long.compare(a.getFileSize(), b.getFileSize()));
+        }
+        // Otherwise sort by ID
+        else {
+            FXCollections.sort(masterData, (a, b) ->
+                    Integer.compare(a.getId(), b.getId()));
+        }
+    }
+
+
+    private void deleteSelected() {
+        // Get selected doc (object from row)
+        Document selected = table.getSelectionModel().getSelectedItem();
+
+        // No selected doc
+        if (selected == null) {
+            return;
+        }
+
+        // Confirm delete
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Document");
+        confirm.setHeaderText("Delete selected document?");
+        confirm.setContentText(selected.getFileName());
+
+        // Show popup until user action (clicks ok)
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    // Call api to delete selected document
+                    boolean deleted = apiModule.deleteDocument(selected.getId());
+
+                    // Refresh table if delete succeeds
+                    if (deleted) {
+                        refreshTable();
+                        clearDetails();
+                    }
+                } catch (Exception e) {
+                    showError("Delete Error", "Failed to delete document.", e);
+                }
+            }
+        });
+    }
+
+
+    
+
+
     // Get details of document
     private void showDocumentDetails(Document document) {
         if (document == null) {
