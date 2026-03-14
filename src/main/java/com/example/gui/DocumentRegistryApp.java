@@ -195,6 +195,13 @@ public class DocumentRegistryApp extends Application {
         updateBtn.setStyle(primaryButtonStyle);
         updateBtn.setOnAction(e -> updateDocuments());
 
+        Button uploadBtn = new Button("Upload File");
+        uploadBtn.setStyle(secondaryButtonStyle);
+        uploadBtn.setOnAction(e -> uploadFile());
+
+        Button downloadBtn = new Button("Download Selected");
+        downloadBtn.setStyle(secondaryButtonStyle);
+
         // Spacer to keep title on left and buttons on right
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
