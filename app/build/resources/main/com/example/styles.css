@@ -1,0 +1,35 @@
+/* ── Taskbar ── */
+.taskbar {
+    -fx-background-color: #3c3f41;
+    -fx-padding: 2 0 2 0;
+}
+
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-text-fill: #bbbbbb;
+    -fx-font-size: 13px;
+    -fx-padding: 5 12 5 12;
+    -fx-cursor: hand;
+}
+
+.menu-button:hover {
+    -fx-background-color: #4c5052;
+    -fx-text-fill: white;
+}
+
+.menu-button:pressed {
+    -fx-background-color: #2d5fa8;
+    -fx-text-fill: white;
+}
+
+/* ── Document area ── */
+.document-area {
+    -fx-background-color: #2b2b2b;
+}
+
+.placeholder-text {
+    -fx-text-fill: #666666;
+    -fx-font-size: 16px;
+}
