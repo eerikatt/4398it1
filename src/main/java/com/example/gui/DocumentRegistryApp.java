@@ -496,10 +496,6 @@ public class DocumentRegistryApp extends Application {
         });
     }
 
-
-    
-
-
     // Get details of document
     private void showDocumentDetails(Document document) {
         if (document == null) {
