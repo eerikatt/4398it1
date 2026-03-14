@@ -11,6 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -23,6 +24,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -159,6 +161,9 @@ public class DocumentRegistryApp extends Application {
         BorderPane.setMargin(tablePane, new Insets(16, 16, 0, 0));
         BorderPane.setMargin(detailsPane, new Insets(16, 0, 0, 0));
 
+        // Load docs when app starts
+        refreshTable();
+
         // Window size and title
         Scene scene = new Scene(root, 1200, 700);
         stage.setTitle("Document Registry");    // Window title
@@ -178,7 +183,19 @@ public class DocumentRegistryApp extends Application {
 
         VBox titleBox = new VBox(4, title, subtitle);
 
-        HBox header = new HBox(12, titleBox);
+        // Buttons
+        Button updateBtn = new Button("Update");
+        updateBtn.setStyle(primaryButtonStyle);
+        updateBtn.setOnAction(e -> updateDocuments());
+
+        // Spacer to keep title on left and buttons on right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox buttonBox = new HBox(10, updateBtn);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox header = new HBox(12, titleBox, spacer, buttonBox);
         header.setAlignment(Pos.CENTER_LEFT);
 
         return header;
@@ -354,6 +371,35 @@ public class DocumentRegistryApp extends Application {
         });
     }
 
+    // Load docs
+    private void refreshTable() {
+        Integer selectedId = null;
+        Document selectedDocument = table.getSelectionModel().getSelectedItem();
+
+        if (selectedDocument != null) {
+            selectedId = selectedDocument.getId();
+        }
+
+        masterData.setAll(apiModule.getAllDocuments());
+
+        // Re-apply search filter after reload
+        if (searchField != null) {
+            applyFilter(searchField.getText());
+        }
+
+        // Try to reselect the same document after refresh
+        if (selectedId != null) {
+            for (Document document : filteredData) {
+                if (document.getId() == selectedId) {
+                    table.getSelectionModel().select(document);
+                    return;
+                }
+            }
+        }
+
+        clearDetails();
+    }
+
     // Filter documents based on search text
     private void applyFilter(String filterText) {
         // If null set as "", else make it lowercase
@@ -374,6 +420,16 @@ public class DocumentRegistryApp extends Application {
                     || fileType.contains(filter)
                     || filePath.contains(filter);
         });
+    }
+
+    // Update button to sync storage and database, then reload table
+    private void updateDocuments() {
+        try {
+            apiModule.syncStorageAndDatabase();
+            refreshTable();
+        } catch (Exception e) {
+            showError("Update Error", "Failed to update documents.", e);
+        }
     }
 
     // Get details of document
@@ -401,6 +457,15 @@ public class DocumentRegistryApp extends Application {
         sizeValue.setText("-");
         pathValue.setText("-");
         createdValue.setText("-");
+    }
+
+    // Handle errors (popup msg)
+    private void showError(String title, String header, Exception e) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(e.getMessage());
+        alert.showAndWait();
     }
 
     // Style helper for detail labels
