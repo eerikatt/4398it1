@@ -3,4 +3,8 @@ target/
 .idea/
 .vscode/
 .DS_Store
-Thumbs.db
+Thumbs.db.gradle/
+gradlew
+gradlew.bat
+build.gradle
+settings.gradle
