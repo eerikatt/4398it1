@@ -540,7 +540,7 @@ public class DocumentRegistryApp extends Application {
     }
 
         private void sortDocuments(String sortOption) {
-        // If nothing is selected, stop.
+        // If nothing is selected,stop.
         if (sortOption == null) {
             return;
         }
@@ -603,6 +603,7 @@ public class DocumentRegistryApp extends Application {
     }
 
     // Get details of document
+    
     private void showDocumentDetails(Document document) {
         if (document == null) {
             clearDetails();
